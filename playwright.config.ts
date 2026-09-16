@@ -17,8 +17,26 @@ export default defineConfig({
     screenshot: 'only-on-failure',
   },
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-    { name: 'mobile', use: { ...devices['iPhone 13'] } },
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 720 } },
+    },
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'], viewport: { width: 1280, height: 720 } },
+    },
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'], viewport: { width: 1280, height: 720 } },
+    },
+    {
+      name: 'mobile-portrait',
+      use: { browserName: 'chromium', viewport: { width: 320, height: 568 } },
+    },
+    {
+      name: 'mobile-landscape',
+      use: { browserName: 'chromium', viewport: { width: 667, height: 375 } },
+    },
   ],
   webServer: {
     command: 'pnpm dev',
