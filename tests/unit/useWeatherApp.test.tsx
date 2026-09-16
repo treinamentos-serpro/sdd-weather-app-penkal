@@ -113,12 +113,30 @@ describe('useWeatherApp', () => {
     act(() => result.current.setQuery('Recife'));
     await act(async () => await result.current.submitSearch());
     expect(result.current.search.status).toBe('error');
+    expect(result.current.search.error?.message).toBe('Não foi possível buscar localidades.');
 
     await act(async () => await result.current.retrySearch());
 
     expect(mockedSearchCities).toHaveBeenLastCalledWith('Recife', expect.any(AbortSignal));
     expect(mockedSearchCities).toHaveBeenCalledTimes(2);
     expect(result.current.search.status).toBe('empty');
+  });
+
+  it('publishes an operation-specific timeout message', async () => {
+    mockedSearchCities.mockRejectedValueOnce({
+      operation: 'search',
+      code: 'timeout',
+      message: 'A requisição demorou mais que o esperado.',
+      recoverable: true,
+    });
+    const { result } = renderHook(() => useWeatherApp());
+
+    act(() => result.current.setQuery('Recife'));
+    await act(async () => await result.current.submitSearch());
+
+    expect(result.current.search.error?.message).toBe(
+      'A busca de localidades excedeu o tempo limite.',
+    );
   });
 
   it('discards a previous search response and aborts pending work on unmount', async () => {
@@ -173,6 +191,7 @@ describe('useWeatherApp', () => {
     await act(async () => await result.current.selectCity(recife));
     expect(result.current.selectedCity).toBe(recife);
     expect(result.current.weather.status).toBe('error');
+    expect(result.current.weather.error?.message).toBe('Não foi possível consultar o clima.');
 
     await act(async () => await result.current.retryWeather());
 
@@ -222,5 +241,46 @@ describe('useWeatherApp', () => {
 
     expect(result.current.weather.data).toEqual(latestReport);
     expect(result.current.selectedCity).toEqual(olinda);
+  });
+
+  it('clears and invalidates pending weather when a new search starts', async () => {
+    let resolveReport:
+      | ((report: {
+          city: typeof recife;
+          current: { observedAt: string; temperatureCelsius: number; condition: 'Céu limpo' };
+          forecast: [];
+        }) => void)
+      | undefined;
+    const pendingReport = new Promise<{
+      city: typeof recife;
+      current: { observedAt: string; temperatureCelsius: number; condition: 'Céu limpo' };
+      forecast: [];
+    }>((resolve) => {
+      resolveReport = resolve;
+    });
+    mockedGetWeatherReport.mockReturnValueOnce(pendingReport);
+    mockedSearchCities.mockResolvedValueOnce([]);
+    const { result } = renderHook(() => useWeatherApp());
+
+    act(() => {
+      void result.current.selectCity(recife);
+    });
+    const weatherSignal = mockedGetWeatherReport.mock.calls[0]?.[1];
+    act(() => result.current.setQuery('Olinda'));
+    await act(async () => await result.current.submitSearch());
+
+    expect(weatherSignal?.aborted).toBe(true);
+    expect(result.current.selectedCity).toBeNull();
+    expect(result.current.weather).toEqual({ status: 'idle', data: null, error: null });
+
+    resolveReport?.({
+      city: recife,
+      current: { observedAt: '2026-09-16T14:00', temperatureCelsius: 22, condition: 'Céu limpo' },
+      forecast: [],
+    });
+    await act(async () => undefined);
+
+    expect(result.current.selectedCity).toBeNull();
+    expect(result.current.weather).toEqual({ status: 'idle', data: null, error: null });
   });
 });

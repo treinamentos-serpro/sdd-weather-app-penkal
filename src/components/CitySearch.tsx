@@ -1,5 +1,5 @@
 import { Search } from 'lucide-react';
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useRef, useState } from 'react';
 
 interface CitySearchProps {
   query: string;
@@ -9,10 +9,15 @@ interface CitySearchProps {
 
 export default function CitySearch({ query, onQueryChange, onSubmit }: CitySearchProps) {
   const [showGuidance, setShowGuidance] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
-    setShowGuidance(query.trim().length === 0);
+    const isEmpty = query.trim().length === 0;
+    setShowGuidance(isEmpty);
+    if (isEmpty) {
+      inputRef.current?.focus();
+    }
     void onSubmit();
   };
 
@@ -28,6 +33,7 @@ export default function CitySearch({ query, onQueryChange, onSubmit }: CitySearc
             className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400"
           />
           <input
+            ref={inputRef}
             id="city-search"
             value={query}
             onChange={(event) => {

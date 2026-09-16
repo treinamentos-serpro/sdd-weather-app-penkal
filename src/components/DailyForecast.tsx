@@ -1,6 +1,6 @@
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import { formatForecastDate } from '../domain/dateTime';
-import { celsiusToFahrenheit } from '../domain/temperature';
+import { celsiusToFahrenheit, roundTemperature } from '../domain/temperature';
 import type { TemperatureUnit, WeatherReport } from '../types/weather';
 import WeatherIcon from './WeatherIcon';
 
@@ -10,7 +10,7 @@ interface DailyForecastProps {
 }
 
 function formatTemperature(celsius: number, unit: TemperatureUnit): string {
-  const value = unit === 'celsius' ? Math.round(celsius) : celsiusToFahrenheit(celsius);
+  const value = unit === 'celsius' ? roundTemperature(celsius) : celsiusToFahrenheit(celsius);
   return `${value} ${unit === 'celsius' ? '°C' : '°F'}`;
 }
 

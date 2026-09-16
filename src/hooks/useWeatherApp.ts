@@ -76,6 +76,8 @@ export function useWeatherApp(): UseWeatherAppResult {
     const submittedQuery = query.trim();
 
     searchControllerRef.current?.abort();
+    weatherControllerRef.current?.abort();
+    ++weatherOperationIdRef.current;
     const controller = new AbortController();
     searchControllerRef.current = controller;
     const operationId = ++searchOperationIdRef.current;
@@ -84,6 +86,8 @@ export function useWeatherApp(): UseWeatherAppResult {
       setState((currentState) => ({
         ...currentState,
         search: { status: 'empty', data: [], error: null },
+        selectedCity: null,
+        weather: initialWeatherState,
       }));
       return;
     }
@@ -92,6 +96,8 @@ export function useWeatherApp(): UseWeatherAppResult {
       ...currentState,
       lastSubmittedQuery: submittedQuery,
       search: { status: 'loading', data: [], error: null },
+      selectedCity: null,
+      weather: initialWeatherState,
     }));
 
     try {
@@ -174,7 +180,11 @@ export function useWeatherApp(): UseWeatherAppResult {
 
 function toSearchError(error: unknown): AppError {
   if (isAppError(error)) {
-    return error;
+    return {
+      ...error,
+      operation: 'search',
+      message: getOperationErrorMessage('search', error),
+    };
   }
 
   return {
@@ -187,7 +197,11 @@ function toSearchError(error: unknown): AppError {
 
 function toWeatherError(error: unknown): AppError {
   if (isAppError(error)) {
-    return error;
+    return {
+      ...error,
+      operation: 'weather',
+      message: getOperationErrorMessage('weather', error),
+    };
   }
 
   return {
@@ -196,6 +210,22 @@ function toWeatherError(error: unknown): AppError {
     message: 'Não foi possível consultar o clima.',
     recoverable: true,
   };
+}
+
+function getOperationErrorMessage(operation: AppError['operation'], error: AppError): string {
+  if (error.code === 'invalid-data') {
+    return error.message;
+  }
+
+  if (error.code === 'timeout') {
+    return operation === 'search'
+      ? 'A busca de localidades excedeu o tempo limite.'
+      : 'A consulta do clima excedeu o tempo limite.';
+  }
+
+  return operation === 'search'
+    ? 'Não foi possível buscar localidades.'
+    : 'Não foi possível consultar o clima.';
 }
 
 function isAppError(error: unknown): error is AppError {
