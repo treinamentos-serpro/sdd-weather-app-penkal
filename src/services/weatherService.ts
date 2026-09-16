@@ -37,11 +37,14 @@ export async function getWeatherReport(city: City, signal?: AbortSignal): Promis
       temperatureCelsius: current.temperature_2m,
       condition: weatherCodeToCondition(toWeatherCode(current.weather_code)),
     },
-    forecast: toForecast(payload.daily),
+    forecast: toForecast(payload.daily, current.time.slice(0, 10)),
   };
 }
 
-function toForecast(daily: ForecastDailyDto | null | undefined): readonly ForecastDay[] {
+function toForecast(
+  daily: ForecastDailyDto | null | undefined,
+  currentDate: string,
+): readonly ForecastDay[] {
   if (
     !daily ||
     !Array.isArray(daily.time) ||
@@ -70,6 +73,7 @@ function toForecast(daily: ForecastDailyDto | null | undefined): readonly Foreca
   });
 
   if (
+    forecast[0]?.date !== currentDate ||
     !forecast.every((day, index) => index === 0 || isNextDate(forecast[index - 1]?.date, day.date))
   ) {
     throw invalidDataError();
@@ -92,11 +96,32 @@ function validateTimezone(value: unknown): string {
 }
 
 function isLocalDateTime(value: unknown): value is string {
-  return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value);
+  if (typeof value !== 'string') {
+    return false;
+  }
+
+  const match = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})$/.exec(value);
+  return match !== null && isIsoDate(match[1]) && Number(match[2]) <= 23 && Number(match[3]) <= 59;
 }
 
 function isIsoDate(value: unknown): value is string {
-  return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
+  if (typeof value !== 'string') {
+    return false;
+  }
+
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) {
+    return false;
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(Date.UTC(year, month - 1, day));
+
+  return (
+    date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+  );
 }
 
 function isFiniteNumber(value: unknown): value is number {

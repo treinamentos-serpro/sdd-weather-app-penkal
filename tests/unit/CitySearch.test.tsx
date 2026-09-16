@@ -22,5 +22,6 @@ it('submits a city by Enter and explains blank input without blocking focus', as
   await user.click(screen.getByRole('button', { name: 'Buscar' }));
 
   expect(screen.getByText('Informe o nome de uma cidade para buscar.')).toBeVisible();
+  expect(input).toHaveFocus();
   expect(onSubmit).toHaveBeenCalledTimes(2);
 });

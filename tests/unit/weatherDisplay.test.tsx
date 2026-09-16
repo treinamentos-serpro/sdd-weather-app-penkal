@@ -36,6 +36,20 @@ it('displays current conditions with explicit active unit and local update time'
   expect(screen.getByText('Atualizado às 23:45')).toBeVisible();
 });
 
+it('rounds a negative Celsius half value away from zero', () => {
+  render(
+    <CurrentWeather
+      report={{
+        ...report,
+        current: { ...report.current, temperatureCelsius: -1.5 },
+      }}
+      unit="celsius"
+    />,
+  );
+
+  expect(screen.getByText('-2 °C')).toBeVisible();
+});
+
 it('displays exactly five localized daily forecasts in the active unit', () => {
   render(<DailyForecast report={report} unit="celsius" />);
 

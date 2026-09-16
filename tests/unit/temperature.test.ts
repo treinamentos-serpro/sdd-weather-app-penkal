@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { celsiusToFahrenheit } from '../../src/domain/temperature';
+import { celsiusToFahrenheit, roundTemperature } from '../../src/domain/temperature';
 
 describe('celsiusToFahrenheit', () => {
   it('converts Celsius to Fahrenheit and rounds the result', () => {
@@ -11,5 +11,10 @@ describe('celsiusToFahrenheit', () => {
   it('rounds half values away from zero', () => {
     expect(celsiusToFahrenheit((-33.5 * 5) / 9)).toBe(-2);
     expect(celsiusToFahrenheit((-30.5 * 5) / 9)).toBe(2);
+  });
+
+  it('rounds Celsius half values away from zero', () => {
+    expect(roundTemperature(-1.5)).toBe(-2);
+    expect(roundTemperature(1.5)).toBe(2);
   });
 });

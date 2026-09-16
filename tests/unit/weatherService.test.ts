@@ -65,4 +65,44 @@ describe('getWeatherReport', () => {
       operation: 'weather',
     });
   });
+
+  it('rejects an invalid current local date and time', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        buildForecastResponse({
+          ...forecastFixtures.success,
+          current: {
+            ...forecastFixtures.success.current,
+            time: '2026-02-30T25:00',
+          },
+        }),
+      ),
+    );
+
+    await expect(getWeatherReport(city)).rejects.toMatchObject({
+      code: 'invalid-data',
+      operation: 'weather',
+    });
+  });
+
+  it('rejects a forecast that does not start on the current local date', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        buildForecastResponse({
+          ...forecastFixtures.success,
+          daily: {
+            ...forecastFixtures.success.daily,
+            time: ['2026-09-17', '2026-09-18', '2026-09-19', '2026-09-20', '2026-09-21'],
+          },
+        }),
+      ),
+    );
+
+    await expect(getWeatherReport(city)).rejects.toMatchObject({
+      code: 'invalid-data',
+      operation: 'weather',
+    });
+  });
 });
