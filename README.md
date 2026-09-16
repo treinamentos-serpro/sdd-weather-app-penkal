@@ -76,6 +76,28 @@ pnpm test:coverage   # cobertura
 pnpm test:e2e        # testes E2E (Playwright)
 ```
 
+### Validação de entrega
+
+A suíte E2E intercepta as rotas da Open-Meteo e cobre o fluxo principal em
+390 × 844 px, troca e preservação de unidade, estados de falha e retry, timeout
+de dez segundos, navegação por teclado, concorrência e ausência de rolagem
+horizontal. A regressão responsiva usa os projetos configurados para Chromium,
+Firefox e WebKit em 1280 × 720 px, além de Chromium em 320 × 568 px e
+667 × 375 px.
+
+O WebKit do Playwright oferece cobertura compatível, mas não substitui a
+validação nas versões atual e anterior do Safari real. Essa parte da RNF6 deve
+ser executada na matriz de lançamento em macOS.
+
+Validação local em 16/09/2026:
+
+- `pnpm lint`, `pnpm build` e `pnpm test`: aprovados, com 50 testes unitários.
+- `pnpm exec playwright test --list`: 35 execuções coletadas nos cinco projetos.
+- A execução dos browsers ficou bloqueada neste dev container pela ausência de
+  bibliotecas nativas do sistema. Os binários foram baixados, mas a instalação
+  das dependências requer acesso administrativo e pacotes indisponíveis nos
+  repositórios configurados.
+
 ---
 
 ## Arquitetura do app
