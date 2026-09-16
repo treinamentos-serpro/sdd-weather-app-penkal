@@ -88,7 +88,7 @@ export default function App() {
               className="rounded-lg border border-white/10 bg-white/[0.07] p-5 shadow-glass backdrop-blur-md sm:p-6"
             >
               <h2 id="current-weather-title" className="text-sm font-semibold text-slate-300">
-                Clima agora
+Clima atual
               </h2>
               <div className="mt-5">
                 <OperationStatus

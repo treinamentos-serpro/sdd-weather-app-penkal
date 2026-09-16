@@ -50,11 +50,8 @@ function toForecast(
     !Array.isArray(daily.time) ||
     !Array.isArray(daily.temperature_2m_min) ||
     !Array.isArray(daily.temperature_2m_max) ||
-    !Array.isArray(daily.weather_code) ||
-    daily.time.length !== 5 ||
-    daily.temperature_2m_min.length !== 5 ||
-    daily.temperature_2m_max.length !== 5 ||
-    daily.weather_code.length !== 5
+    (daily.weather_code !== undefined &&
+      (!Array.isArray(daily.weather_code) || daily.weather_code.length !== 5))
   ) {
     throw invalidDataError();
   }

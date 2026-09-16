@@ -33,7 +33,13 @@ export async function requestJson<T>({ url, operation, signal }: HttpRequestOpti
     const response = await fetch(url, { signal: timeoutController.signal });
 
     if (!response.ok) {
-      throw createError(operation, 'service', 'O serviço está indisponível no momento.');
+      throw createError(
+        operation,
+        'service',
+        operation === 'search'
+          ? 'Não foi possível buscar localidades.'
+          : 'Não foi possível consultar o clima.',
+      );
     }
 
     return (await response.json()) as T;
